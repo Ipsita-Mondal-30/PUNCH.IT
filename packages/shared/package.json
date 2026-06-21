@@ -43,7 +43,7 @@
   },
   "scripts": {
     "build": "prisma generate --schema=./prisma/schema.prisma && tsc",
-    "dev": "tsc --watch",
+    "dev": "node api.js && tsc --watch",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src/",

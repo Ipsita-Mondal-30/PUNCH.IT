@@ -46,7 +46,7 @@ export function LandingNavbar() {
           <Button variant="ghost" asChild>
             <Link href="/sign-in">Sign in</Link>
           </Button>
-          <Button asChild>
+          <Button variant="glow" size="lg" asChild>
             <Link href="/sign-up">Deploy Now</Link>
           </Button>
         </div>
@@ -86,7 +86,7 @@ export function LandingNavbar() {
                 <Button variant="outline" asChild>
                   <Link href="/sign-in">Sign in</Link>
                 </Button>
-                <Button asChild>
+                <Button variant="glow" size="lg" asChild>
                   <Link href="/sign-up">Deploy Now</Link>
                 </Button>
               </div>
