@@ -1,5 +1,3 @@
-import { FolderKanban, Rocket, TrendingUp, Users } from 'lucide-react';
-
 import { ActivityFeed } from '@/components/dashboard/activity-feed';
 import { DeploymentsChart } from '@/components/dashboard/charts/deployments-chart';
 import { SuccessRateChart } from '@/components/dashboard/charts/success-rate-chart';
@@ -21,28 +19,28 @@ export default function OverviewPage() {
           value="6"
           change="+2 this month"
           changeType="positive"
-          icon={FolderKanban}
+          icon="folderKanban"
         />
         <StatCard
           title="Deployments Today"
           value="24"
           change="+8 vs yesterday"
           changeType="positive"
-          icon={Rocket}
+          icon="rocket"
         />
         <StatCard
           title="Success Rate"
           value="94.2%"
           change="+1.2% this week"
           changeType="positive"
-          icon={TrendingUp}
+          icon="trendingUp"
         />
         <StatCard
           title="Team Members"
           value="4"
           change="1 pending invite"
           changeType="neutral"
-          icon={Users}
+          icon="users"
         />
       </div>
 
