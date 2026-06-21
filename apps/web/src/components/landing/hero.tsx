@@ -121,17 +121,17 @@ export function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              className="mt-8 flex flex-wrap gap-3"
+              className="mt-8 flex flex-wrap gap-4"
             >
-              <Button size="lg" asChild>
+              <Button size="xl" variant="glow" asChild>
                 <Link href="/sign-up">
                   Deploy Now
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className="h-6 w-6" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" asChild>
+              <Button size="xl" variant="outline" asChild>
                 <Link href="#features">
-                  <BookOpen className="h-4 w-4" />
+                  <BookOpen className="h-5 w-5" />
                   View Documentation
                 </Link>
               </Button>

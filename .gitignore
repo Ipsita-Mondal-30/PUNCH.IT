@@ -10,13 +10,10 @@ out
 build
 
 # Environment
-.env
-.env.local
 .env.*.local
 
 # IDE
 .idea
-.vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
 *.swp
@@ -48,3 +45,4 @@ packages/shared/prisma/migrations/**/migration_lock.toml
 # Misc
 *.tsbuildinfo
 .vercel
+config.bat
