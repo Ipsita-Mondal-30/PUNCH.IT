@@ -42,8 +42,8 @@
     }
   },
   "scripts": {
-    "build": "prisma generate --schema=./prisma/schema.prisma && tsc",
-    "dev": "tsc --watch",
+    "build": "node init && prisma generate --schema=./prisma/schema.prisma && tsc",
+    "dev": "node init && tsc --watch",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src/",

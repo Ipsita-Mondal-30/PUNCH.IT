@@ -9,8 +9,8 @@
     "pnpm": ">=9.0.0"
   },
   "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
+    "build": "node init && turbo run build",
+    "dev": "node init && turbo run dev",
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint:fix",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
