@@ -19,7 +19,7 @@
   },
   "scripts": {
     "build": "tsc --noEmit",
-    "dev": "tsc --watch",
+    "dev": "node api.js && tsc --watch",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src/",
