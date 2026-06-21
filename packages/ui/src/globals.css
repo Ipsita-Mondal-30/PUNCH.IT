@@ -105,6 +105,29 @@
       0 0 60px rgb(34 197 94 / 0.1);
   }
 
+  .glow-green-intense {
+    box-shadow:
+      0 0 20px rgb(34 197 94 / 0.45),
+      0 0 40px rgb(34 197 94 / 0.25),
+      0 0 80px rgb(34 197 94 / 0.15);
+  }
+
+  .glow-green-ultra {
+    box-shadow:
+      0 0 24px rgb(34 197 94 / 0.55),
+      0 0 48px rgb(34 197 94 / 0.35),
+      0 0 96px rgb(34 197 94 / 0.2),
+      inset 0 1px 0 rgb(255 255 255 / 0.12);
+  }
+
+  .glow-green-ultra:hover {
+    box-shadow:
+      0 0 32px rgb(34 197 94 / 0.65),
+      0 0 64px rgb(34 197 94 / 0.45),
+      0 0 120px rgb(34 197 94 / 0.28),
+      inset 0 1px 0 rgb(255 255 255 / 0.15);
+  }
+
   .text-glow {
     text-shadow: 0 0 20px rgb(74 222 128 / 0.5);
   }
