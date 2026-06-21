@@ -1,0 +1,447 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─── Authentication (Better Auth core) ──────────────────────────────────────
+
+model User {
+  id            String    @id @default(uuid()) @db.Uuid
+  email         String    @unique @db.VarChar(320)
+  name          String?   @db.VarChar(255)
+  image         String?   @db.VarChar(2048)
+  emailVerified Boolean   @default(false)
+  createdAt     DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt     DateTime? @db.Timestamptz(6)
+
+  accounts    Account[]
+  sessions    Session[]
+  githubAccounts GithubAccount[]
+  teamMembers TeamMember[]
+  projects    Project[]    @relation("ProjectCreator")
+  deployments Deployment[] @relation("DeploymentCreator")
+
+  @@index([deletedAt])
+  @@index([createdAt(sort: Desc)])
+  @@map("users")
+}
+
+model Account {
+  id                    String    @id @default(uuid()) @db.Uuid
+  userId                String    @db.Uuid
+  accountId             String    @db.VarChar(255)
+  providerId            String    @db.VarChar(64)
+  accessToken           String?   @db.Text
+  refreshToken          String?   @db.Text
+  idToken               String?   @db.Text
+  accessTokenExpiresAt  DateTime? @db.Timestamptz(6)
+  refreshTokenExpiresAt DateTime? @db.Timestamptz(6)
+  scope                 String?   @db.Text
+  password              String?   @db.Text
+  createdAt             DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt             DateTime  @updatedAt @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Session {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  token     String   @unique @db.VarChar(512)
+  expiresAt DateTime @db.Timestamptz(6)
+  ipAddress String?  @db.VarChar(45)
+  userAgent String?  @db.VarChar(1024)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model Verification {
+  id         String   @id @default(uuid()) @db.Uuid
+  identifier String   @db.VarChar(320)
+  value      String   @db.VarChar(512)
+  expiresAt  DateTime @db.Timestamptz(6)
+  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt  DateTime @updatedAt @db.Timestamptz(6)
+
+  @@index([identifier])
+  @@index([expiresAt])
+  @@map("verifications")
+}
+
+// ─── GitHub Integration ───────────────────────────────────────────────────────
+
+model GithubAccount {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @db.Uuid
+  githubId        String    @unique @db.VarChar(64)
+  login           String    @db.VarChar(255)
+  installationId  String?   @db.VarChar(64)
+  accessToken     String?   @db.Text
+  refreshToken    String?   @db.Text
+  tokenExpiresAt  DateTime? @db.Timestamptz(6)
+  scope           String?   @db.Text
+  avatarUrl       String?   @db.VarChar(2048)
+  profileUrl      String?   @db.VarChar(2048)
+  createdAt       DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt       DateTime? @db.Timestamptz(6)
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projects Project[]
+
+  @@unique([userId, githubId])
+  @@index([userId, deletedAt])
+  @@index([login])
+  @@index([installationId])
+  @@map("github_accounts")
+}
+
+// ─── Teams & Membership ───────────────────────────────────────────────────────
+
+model Team {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String    @db.VarChar(255)
+  slug      String    @unique @db.VarChar(255)
+  avatarUrl String?   @db.VarChar(2048)
+  createdAt DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt DateTime? @db.Timestamptz(6)
+
+  members  TeamMember[]
+  projects Project[]
+  assets   Asset[]
+
+  @@index([deletedAt])
+  @@index([createdAt(sort: Desc)])
+  @@map("teams")
+}
+
+model TeamMember {
+  id        String    @id @default(uuid()) @db.Uuid
+  teamId    String    @db.Uuid
+  userId    String    @db.Uuid
+  role      TeamRole  @default(MEMBER)
+  createdAt DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt DateTime? @db.Timestamptz(6)
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@index([userId, deletedAt])
+  @@index([teamId, role, deletedAt])
+  @@map("team_members")
+}
+
+// ─── Projects ─────────────────────────────────────────────────────────────────
+
+model Project {
+  id               String    @id @default(uuid()) @db.Uuid
+  teamId           String    @db.Uuid
+  creatorId        String    @db.Uuid
+  githubAccountId  String?   @db.Uuid
+  name             String    @db.VarChar(255)
+  slug             String    @db.VarChar(255)
+  description      String?   @db.Text
+  repositoryUrl    String?   @db.VarChar(2048)
+  githubRepoId     String?   @db.VarChar(64)
+  defaultBranch    String    @default("main") @db.VarChar(255)
+  framework        String?   @db.VarChar(64)
+  rootDirectory    String?   @db.VarChar(512)
+  buildCommand     String?   @db.VarChar(512)
+  installCommand   String?   @db.VarChar(512)
+  outputDirectory  String?   @db.VarChar(512)
+  createdAt        DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt        DateTime? @db.Timestamptz(6)
+
+  team            Team                 @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  creator         User                 @relation("ProjectCreator", fields: [creatorId], references: [id])
+  githubAccount   GithubAccount?       @relation(fields: [githubAccountId], references: [id], onDelete: SetNull)
+  deployments     Deployment[]
+  domains         Domain[]
+  environmentVars EnvironmentVariable[]
+  assets          Asset[]
+  webhookEvents   WebhookEvent[]
+
+  @@unique([teamId, slug])
+  @@index([teamId, deletedAt])
+  @@index([githubRepoId])
+  @@index([creatorId])
+  @@index([createdAt(sort: Desc)])
+  @@map("projects")
+}
+
+// ─── Deployments ──────────────────────────────────────────────────────────────
+
+model Deployment {
+  id              String                @id @default(uuid()) @db.Uuid
+  projectId       String                @db.Uuid
+  creatorId       String                @db.Uuid
+  status          DeploymentStatus      @default(PENDING)
+  target          DeploymentTarget      @default(PREVIEW)
+  gitBranch       String?               @db.VarChar(255)
+  gitCommitSha    String?               @db.VarChar(64)
+  gitCommitMessage String?              @db.Text
+  gitAuthorName   String?               @db.VarChar(255)
+  gitAuthorEmail  String?               @db.VarChar(320)
+  url             String?               @db.VarChar(2048)
+  inspectorUrl    String?               @db.VarChar(2048)
+  readyAt         DateTime?             @db.Timestamptz(6)
+  buildingAt      DateTime?             @db.Timestamptz(6)
+  meta            Json?
+  createdAt       DateTime              @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime              @updatedAt @db.Timestamptz(6)
+  deletedAt       DateTime?             @db.Timestamptz(6)
+
+  project           Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  creator           User                  @relation("DeploymentCreator", fields: [creatorId], references: [id])
+  logs              DeploymentLog[]
+  buildArtifacts    BuildArtifact[]
+  domains           Domain[]
+  environmentVars   EnvironmentVariable[]
+  assets            Asset[]
+
+  @@index([projectId, status, createdAt(sort: Desc)])
+  @@index([projectId, createdAt(sort: Desc)])
+  @@index([projectId, target, createdAt(sort: Desc)])
+  @@index([creatorId, createdAt(sort: Desc)])
+  @@index([status, createdAt(sort: Desc)])
+  @@index([deletedAt])
+  @@map("deployments")
+}
+
+model DeploymentLog {
+  id           String    @id @default(uuid()) @db.Uuid
+  deploymentId String    @db.Uuid
+  level        LogLevel  @default(INFO)
+  source       LogSource @default(BUILD)
+  message      String    @db.Text
+  sequence     BigInt
+  loggedAt     DateTime  @default(now()) @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @db.Timestamptz(6)
+
+  deployment Deployment @relation(fields: [deploymentId], references: [id], onDelete: Cascade)
+
+  @@unique([deploymentId, sequence])
+  @@index([deploymentId, loggedAt(sort: Asc)])
+  @@index([deploymentId, level, loggedAt(sort: Asc)])
+  @@map("deployment_logs")
+}
+
+// ─── Domains ──────────────────────────────────────────────────────────────────
+
+model Domain {
+  id                 String       @id @default(uuid()) @db.Uuid
+  projectId          String       @db.Uuid
+  deploymentId       String?      @db.Uuid
+  name               String       @unique @db.VarChar(253)
+  status             DomainStatus @default(PENDING)
+  verified           Boolean      @default(false)
+  verificationType   String?      @db.VarChar(32)
+  verificationValue  String?      @db.VarChar(512)
+  sslStatus          SslStatus    @default(PENDING)
+  createdAt          DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime     @updatedAt @db.Timestamptz(6)
+  deletedAt          DateTime?    @db.Timestamptz(6)
+
+  project    Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  deployment Deployment? @relation(fields: [deploymentId], references: [id], onDelete: SetNull)
+
+  @@index([projectId, deletedAt])
+  @@index([deploymentId])
+  @@index([status, deletedAt])
+  @@map("domains")
+}
+
+// ─── Environment Variables ────────────────────────────────────────────────────
+
+model EnvironmentVariable {
+  id           String            @id @default(uuid()) @db.Uuid
+  projectId    String            @db.Uuid
+  deploymentId String?           @db.Uuid
+  scopeKey     String            @default("project") @db.VarChar(36)
+  key          String            @db.VarChar(255)
+  value        String            @db.Text
+  target       EnvironmentTarget @default(ALL)
+  isSecret     Boolean           @default(true)
+  createdAt    DateTime          @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime          @updatedAt @db.Timestamptz(6)
+  deletedAt    DateTime?         @db.Timestamptz(6)
+
+  project    Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  deployment Deployment? @relation(fields: [deploymentId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, key, target, scopeKey])
+  @@index([projectId, target, deletedAt])
+  @@index([deploymentId, deletedAt])
+  @@map("environment_variables")
+}
+
+// ─── Build Artifacts & Assets ───────────────────────────────────────────────────
+
+model BuildArtifact {
+  id             String       @id @default(uuid()) @db.Uuid
+  deploymentId   String       @db.Uuid
+  type           ArtifactType
+  storageKey     String       @db.VarChar(1024)
+  storageBucket  String       @db.VarChar(255)
+  sizeBytes      BigInt       @default(0)
+  checksumSha256 String?      @db.VarChar(64)
+  mimeType       String?      @db.VarChar(255)
+  createdAt      DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime     @updatedAt @db.Timestamptz(6)
+  deletedAt      DateTime?    @db.Timestamptz(6)
+
+  deployment Deployment @relation(fields: [deploymentId], references: [id], onDelete: Cascade)
+
+  @@index([deploymentId, type, deletedAt])
+  @@index([deploymentId, createdAt(sort: Desc)])
+  @@index([checksumSha256])
+  @@map("build_artifacts")
+}
+
+model Asset {
+  id            String      @id @default(uuid()) @db.Uuid
+  teamId        String?     @db.Uuid
+  projectId     String?     @db.Uuid
+  deploymentId  String?     @db.Uuid
+  name          String      @db.VarChar(255)
+  purpose       AssetPurpose @default(MISC)
+  storageKey    String      @db.VarChar(1024)
+  storageBucket String      @db.VarChar(255)
+  sizeBytes     BigInt      @default(0)
+  contentType   String      @db.VarChar(255)
+  createdAt     DateTime    @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime    @updatedAt @db.Timestamptz(6)
+  deletedAt     DateTime?   @db.Timestamptz(6)
+
+  team       Team?       @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  project    Project?    @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  deployment Deployment? @relation(fields: [deploymentId], references: [id], onDelete: SetNull)
+
+  @@index([teamId, deletedAt])
+  @@index([projectId, purpose, deletedAt])
+  @@index([deploymentId, deletedAt])
+  @@map("assets")
+}
+
+// ─── Webhooks ─────────────────────────────────────────────────────────────────
+
+model WebhookEvent {
+  id               String             @id @default(uuid()) @db.Uuid
+  projectId        String?            @db.Uuid
+  githubDeliveryId String?            @unique @db.VarChar(255)
+  eventType        String             @db.VarChar(128)
+  payload          Json
+  status           WebhookEventStatus @default(PENDING)
+  errorMessage     String?            @db.Text
+  retryCount       Int                @default(0)
+  processedAt      DateTime?          @db.Timestamptz(6)
+  createdAt        DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime           @updatedAt @db.Timestamptz(6)
+
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt(sort: Asc)])
+  @@index([projectId, createdAt(sort: Desc)])
+  @@index([eventType, createdAt(sort: Desc)])
+  @@map("webhook_events")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum TeamRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum DeploymentStatus {
+  PENDING
+  QUEUED
+  BUILDING
+  DEPLOYING
+  READY
+  FAILED
+  CANCELLED
+}
+
+enum DeploymentTarget {
+  PRODUCTION
+  PREVIEW
+  DEVELOPMENT
+}
+
+enum LogLevel {
+  DEBUG
+  INFO
+  WARN
+  ERROR
+}
+
+enum LogSource {
+  BUILD
+  DEPLOY
+  SYSTEM
+  RUNTIME
+}
+
+enum DomainStatus {
+  PENDING
+  ACTIVE
+  ERROR
+  REMOVED
+}
+
+enum SslStatus {
+  PENDING
+  ACTIVE
+  ERROR
+}
+
+enum EnvironmentTarget {
+  PRODUCTION
+  PREVIEW
+  DEVELOPMENT
+  ALL
+}
+
+enum ArtifactType {
+  BUILD_OUTPUT
+  SOURCE
+  CACHE
+  LOG_ARCHIVE
+}
+
+enum AssetPurpose {
+  LOGO
+  FAVICON
+  OG_IMAGE
+  MISC
+}
+
+enum WebhookEventStatus {
+  PENDING
+  PROCESSED
+  FAILED
+  IGNORED
+}
