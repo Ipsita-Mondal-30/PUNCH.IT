@@ -3,6 +3,7 @@
 import { Github } from 'lucide-react';
 
 import { Button } from '@punch-it/ui/components/button';
+import { cn } from '@punch-it/ui/lib/utils';
 
 import { signInWithGitHub } from '@/lib/auth-client';
 
@@ -18,8 +19,13 @@ export function GitHubOAuthButton({
   className,
 }: GitHubOAuthButtonProps) {
   return (
-    <Button size="lg" className={className} onClick={() => signInWithGitHub(callbackURL)}>
-      <Github className="h-5 w-5" />
+    <Button
+      size="xl"
+      variant="glow"
+      className={cn('w-full', className)}
+      onClick={() => signInWithGitHub(callbackURL)}
+    >
+      <Github className="h-7 w-7" />
       {label}
     </Button>
   );

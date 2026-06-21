@@ -1,18 +1,39 @@
 'use client';
 
-import { type LucideIcon } from 'lucide-react';
+import {
+  Clock,
+  FolderKanban,
+  Globe,
+  Rocket,
+  TrendingUp,
+  Users,
+  Zap,
+  type LucideIcon,
+} from 'lucide-react';
 
 import { Card, CardContent } from '@punch-it/ui/components/card';
 import { cn } from '@punch-it/ui/lib/utils';
 
 import { HoverCard } from '@/components/motion';
 
+const iconMap = {
+  folderKanban: FolderKanban,
+  rocket: Rocket,
+  trendingUp: TrendingUp,
+  users: Users,
+  clock: Clock,
+  globe: Globe,
+  zap: Zap,
+} satisfies Record<string, LucideIcon>;
+
+export type StatCardIcon = keyof typeof iconMap;
+
 type StatCardProps = {
   title: string;
   value: string;
   change?: string;
   changeType?: 'positive' | 'negative' | 'neutral';
-  icon: LucideIcon;
+  icon: StatCardIcon;
   className?: string;
 };
 
@@ -21,9 +42,11 @@ export function StatCard({
   value,
   change,
   changeType = 'neutral',
-  icon: Icon,
+  icon,
   className,
 }: StatCardProps) {
+  const Icon = iconMap[icon];
+
   return (
     <HoverCard>
       <Card className={cn('glass border-border/50 hover:glow-green transition-shadow', className)}>

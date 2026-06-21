@@ -3,7 +3,6 @@ import { SuccessRateChart } from '@/components/dashboard/charts/success-rate-cha
 import { PageHeader } from '@/components/ui/page-header';
 import { StatCard } from '@/components/ui/stat-card';
 import { Card, CardContent, CardHeader, CardTitle } from '@punch-it/ui/components/card';
-import { Clock, Globe, Rocket, Zap } from 'lucide-react';
 
 export default function AnalyticsPage() {
   return (
@@ -16,28 +15,28 @@ export default function AnalyticsPage() {
           value="1,247"
           change="+12% this month"
           changeType="positive"
-          icon={Rocket}
+          icon="rocket"
         />
         <StatCard
           title="Avg Build Time"
           value="1m 34s"
           change="-8s vs last week"
           changeType="positive"
-          icon={Clock}
+          icon="clock"
         />
         <StatCard
           title="Edge Requests"
           value="2.4M"
           change="+18% this month"
           changeType="positive"
-          icon={Globe}
+          icon="globe"
         />
         <StatCard
           title="P95 Latency"
           value="42ms"
           change="-3ms vs last week"
           changeType="positive"
-          icon={Zap}
+          icon="zap"
         />
       </div>
 

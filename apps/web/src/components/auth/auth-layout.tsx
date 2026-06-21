@@ -64,8 +64,6 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
               Join thousands of developers deploying to production in seconds.
             </motion.p>
           </div>
-
-          <p className="text-muted-foreground text-sm">Trusted by 5,000+ developers worldwide</p>
         </div>
       </div>
 
